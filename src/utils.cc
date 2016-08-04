@@ -134,7 +134,7 @@ int urldecode_nonstrict_inplace(unsigned char *input,
 
 
 std::string removeBracketsIfNeeded(std::string a) {
-    if ((a.at(0) == '"') and (a.at(a.length()-1) == '"')) {
+    if ((a.at(0) == '"') && (a.at(a.length()-1) == '"')) {
         a.pop_back();
         a.erase(0, 1);
     }
@@ -164,12 +164,21 @@ double random_number(const double from, const double to) {
 }
 
 
-std::string dash_if_empty(const std::string& str) {
-    if (&str == NULL || str.empty()) {
+std::string dash_if_empty(const std::string *str) {
+    if (str == NULL || str->empty()) {
         return "-";
     }
 
-    return str;
+    return *str;
+}
+
+
+std::string dash_if_empty(const char *str) {
+    if (str == NULL || strlen(str) == 0) {
+        return "-";
+    }
+
+    return std::string(str);
 }
 
 

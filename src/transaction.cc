@@ -268,24 +268,24 @@ bool Transaction::extractArguments(const std::string &orig,
 
         key_s = (key.length() + 1);
         value_s = (value.length() + 1);
-        unsigned char *key_c = (unsigned char *) malloc(sizeof(char) * key_s);
-        unsigned char *value_c = (unsigned char *) malloc(sizeof(char) * value_s);
-
-        memset(key_c, '\0', sizeof(char) * key_s);
-        memset(value_c, '\0', sizeof(char) * value_s);
+        unsigned char *key_c = reinterpret_cast<unsigned char *>(
+            calloc(sizeof(char), key_s));
+        unsigned char *value_c = reinterpret_cast<unsigned char *>(
+            calloc(sizeof(char), value_s));
 
         memcpy(key_c, key.c_str(), key_s);
         memcpy(value_c, value.c_str(), value_s);
 
         key_s = urldecode_nonstrict_inplace(key_c, key_s, &invalid, &changed);
-        value_s = urldecode_nonstrict_inplace(value_c, value_s, &invalid, &changed);
+        value_s = urldecode_nonstrict_inplace(value_c, value_s,
+            &invalid, &changed);
 
         if (invalid) {
             m_collections.storeOrUpdateFirst("URLENCODED_ERROR", "1");
         }
 
-        addArgument(orig, std::string((char *)key_c, key_s-1),
-            std::string((char *)value_c, value_s-1));
+        addArgument(orig, std::string(reinterpret_cast<char *>(key_c), key_s-1),
+            std::string(reinterpret_cast<char *>(value_c), value_s-1));
 
         free(key_c);
         free(value_c);
@@ -700,7 +700,8 @@ int Transaction::processRequestBody() {
         }
     } else if (m_requestBodyType == WWWFormUrlEncoded) {
         extractArguments("POST", m_requestBody.str());
-    } else {
+    } else if (m_collections.resolveFirst(
+            "REQUEST_HEADERS:Content-Type") != NULL) {
         std::string *a = m_collections.resolveFirst(
             "REQUEST_HEADERS:Content-Type");
         std::string error;
@@ -713,6 +714,9 @@ int Transaction::processRequestBody() {
             "Unknown request body processor: " + error);
         m_collections.storeOrUpdateFirst("REQBODY_PROCESSOR_ERROR_MSG",
             "Unknown request body processor: " + error);
+    } else {
+        m_collections.storeOrUpdateFirst("REQBODY_ERROR", "0");
+        m_collections.storeOrUpdateFirst("REQBODY_PROCESSOR_ERROR", "0");
     }
 
     /**
@@ -1267,13 +1271,13 @@ std::string Transaction::toOldAuditLogFormatIndex(const std::string &filename,
     strftime(tstr, 299, "[%d/%b/%Y:%H:%M:%S %z]", &timeinfo);
 
     ss << dash_if_empty(
-        *this->m_collections.resolveFirst("REQUEST_HEADERS:Host")) << " ";
+        this->m_collections.resolveFirst("REQUEST_HEADERS:Host")) << " ";
     ss << dash_if_empty(this->m_clientIpAddress) << " ";
     /** TODO: Check variable */
-    ss << dash_if_empty(*this->m_collections.resolveFirst("REMOTE_USER"));
+    ss << dash_if_empty(this->m_collections.resolveFirst("REMOTE_USER"));
     ss << " ";
     /** TODO: Check variable */
-    ss << dash_if_empty(*this->m_collections.resolveFirst("LOCAL_USER"));
+    ss << dash_if_empty(this->m_collections.resolveFirst("LOCAL_USER"));
     ss << " ";
     ss << tstr << " ";
 
@@ -1286,14 +1290,14 @@ std::string Transaction::toOldAuditLogFormatIndex(const std::string &filename,
     ss << this->m_httpCodeReturned << " ";
     ss << this->m_responseBody.tellp();
     /** TODO: Check variable */
-    ss << dash_if_empty(*this->m_collections.resolveFirst("REFERER")) << " ";
+    ss << dash_if_empty(this->m_collections.resolveFirst("REFERER")) << " ";
     ss << "\"";
     ss << dash_if_empty(
-        *this->m_collections.resolveFirst("REQUEST_HEADERS:User-Agent"));
+        this->m_collections.resolveFirst("REQUEST_HEADERS:User-Agent"));
     ss << "\" ";
     ss << this->m_id << " ";
     /** TODO: Check variable */
-    ss << dash_if_empty(*this->m_collections.resolveFirst("REFERER")) << " ";
+    ss << dash_if_empty(this->m_collections.resolveFirst("REFERER")) << " ";
 
     ss << filename << " ";
     ss << "0" << " ";

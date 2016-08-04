@@ -81,7 +81,6 @@ void Collections::storeOrUpdateFirst(const std::string& collectionName,
         return;
     }
 
-
     if (tolower(collectionName) == "session"
         && !m_session_collection_key.empty()) {
         m_session_collection->storeOrUpdateFirst(collectionName + ":"
@@ -180,6 +179,68 @@ std::string* Collections::resolveFirst(const std::string& collectionName,
         }
 
         return NULL;
+}
+
+
+std::string Collections::resolveFirstCopy(const std::string& var) {
+    std::string transientVar = m_transient->resolveFirstCopy(var);
+
+    if (transientVar.empty() == false) {
+        return transientVar;
+    }
+
+    for (auto &a : *this) {
+        std::string res = a.second->resolveFirstCopy(toupper(a.first) +
+            ":" + var);
+        if (res.empty() == false) {
+            return res;
+        }
+    }
+
+    return "";
+}
+
+
+std::string Collections::resolveFirstCopy(const std::string& collectionName,
+        const std::string& var) {
+        if (tolower(collectionName) == "ip"
+            && !m_ip_collection_key.empty()) {
+            return m_ip_collection->resolveFirstCopy(toupper(collectionName)
+                    + ":" + var, m_ip_collection_key);
+        }
+
+        if (tolower(collectionName) == "global"
+            && !m_global_collection_key.empty()) {
+            return m_global_collection->resolveFirstCopy(
+                toupper(collectionName) + ":" + var,
+                m_global_collection_key);
+        }
+
+        if (tolower(collectionName) == "resource"
+            && !m_resource_collection_key.empty()) {
+            return m_resource_collection->resolveFirstCopy(
+                toupper(collectionName) + ":" + var,
+                m_resource_collection_key);
+        }
+
+        if (tolower(collectionName) == "session"
+            && !m_session_collection_key.empty()) {
+            return m_session_collection->resolveFirstCopy(
+                toupper(collectionName) + ":" + var,
+                m_session_collection_key);
+        }
+
+        for (auto &a : *this) {
+            if (tolower(a.first) == tolower(collectionName)) {
+                std::string res = a.second->resolveFirstCopy(toupper(a.first)
+                    + ":" + var);
+                if (res.empty() == false) {
+                    return res;
+                }
+            }
+        }
+
+        return "";
 }
 
 

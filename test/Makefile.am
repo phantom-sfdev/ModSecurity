@@ -20,6 +20,9 @@ MAINTAINERCLEANFILES = \
 bin_PROGRAMS =
 noinst_PROGRAMS =
 
+EXTRA_DIST = \
+	test-cases/*
+
 
 # unit_tests
 
@@ -28,6 +31,12 @@ unit_tests_SOURCES = \
         unit/unit.cc \
         unit/unit_test.cc
 
+noinst_HEADERS = \
+       common/modsecurity_test.cc \
+       common/*.h \
+       unit/*.h \
+       regression/*.h
+
 unit_tests_LDADD = \
 	$(GLOBAL_LDADD) \
 	$(top_builddir)/src/.libs/libmodsecurity.a \
@@ -35,6 +44,7 @@ unit_tests_LDADD = \
 	$(GEOIP_LDFLAGS) $(GEOIP_LDADD) \
 	$(PCRE_LDADD) \
 	$(YAJL_LDFLAGS) $(YAJL_LDADD) \
+	$(LMDB_LDFLAGS) $(LMDB_LDADD) \
 	$(LIBXML2_LDADD)
 
 
@@ -49,6 +59,7 @@ unit_tests_CPPFLAGS = \
 	$(MODSEC_NO_LOGS) \
 	$(GEOIP_CFLAGS) \
 	$(GLOBAL_CPPFLAGS) \
+	$(LMDB_CFLAGS) \
 	$(PCRE_CFLAGS) \
 	$(YAJL_CFLAGS) \
 	$(LIBXML2_CFLAGS)
@@ -69,6 +80,7 @@ regression_tests_LDADD = \
 	$(GEOIP_LDFLAGS) $(GEOIP_LDADD) \
 	$(PCRE_LDADD) \
 	$(YAJL_LDFLAGS) $(YAJL_LDADD) \
+	$(LMDB_LDFLAGS) $(LMDB_LDADD) \
 	$(LIBXML2_LDADD)
 
 
@@ -83,6 +95,7 @@ regression_tests_CPPFLAGS = \
 	$(MODSEC_NO_LOGS) \
 	$(GEOIP_CFLAGS) \
 	$(GLOBAL_CPPFLAGS) \
+	$(LMDB_CFLAGS) \
 	$(PCRE_CFLAGS) \
 	$(YAJL_CFLAGS) \
 	$(LIBXML2_CFLAGS)
@@ -102,6 +115,7 @@ rules_optimization_LDADD = \
 	$(GEOIP_LDFLAGS) $(GEOIP_LDADD) \
 	$(PCRE_LDADD) \
 	$(YAJL_LDFLAGS) $(YAJL_LDADD) \
+	$(LMDB_LDFLAGS) $(LMDB_LDADD) \
 	$(LIBXML2_LDADD)
 
 
@@ -116,6 +130,7 @@ rules_optimization_CPPFLAGS = \
 	$(MODSEC_NO_LOGS) \
 	$(GEOIP_CFLAGS) \
 	$(GLOBAL_CPPFLAGS) \
+	$(LMDB_CFLAGS) \
 	$(PCRE_CFLAGS) \
 	$(YAJL_CFLAGS) \
 	$(LIBXML2_CFLAGS)

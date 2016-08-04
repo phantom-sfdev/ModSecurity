@@ -102,6 +102,7 @@ Rule::Rule(Operator *_op,
     m_unconditional(false),
     m_secmarker(false),
     m_marker(""),
+    m_maturity(0),
     m_referenceCount(0),
     m_fileName(fileName),
     m_lineNumber(lineNumber) {
@@ -269,6 +270,7 @@ bool Rule::evaluateActions(Transaction *trasn) {
 
 bool Rule::evaluate(Transaction *trasn) {
     bool ret = false;
+    bool globalRet = false;
     std::vector<Variable *> *variables = this->variables;
     RuleMessage *ruleMessage = NULL;
 
@@ -282,6 +284,7 @@ bool Rule::evaluate(Transaction *trasn) {
     }
 
     ruleMessage = new modsecurity::RuleMessage(this, m_log_message);
+
 #ifndef NO_LOGS
     std::string eparam = MacroExpansion::expand(this->op->param, trasn);
 
@@ -396,6 +399,7 @@ bool Rule::evaluate(Transaction *trasn) {
                 bool containsDisruptive = false;
                 bool chainResult = false;
                 bool containsPassAction = false;
+		globalRet = true;
 
                 ruleMessage->m_match = "Operator `" + this->op->op +
                     "' with parameter `" + this->op->param + "' against" \
@@ -515,7 +519,7 @@ bool Rule::evaluate(Transaction *trasn) {
                         }
                     }
                 }
-            } else {
+            } else if (globalRet != true) {
 #ifndef NO_LOGS
                 trasn->debug(4, "Rule returned 0.");
                 trasn->m_collections.storeOrUpdateFirst("MATCHED_VAR", "");
@@ -533,6 +537,10 @@ bool Rule::evaluate(Transaction *trasn) {
         }
     }
 
+    if (ruleMessage->m_saveMessage == true) {
+        trasn->serverLog(ruleMessage->errorLog(trasn));
+    }
+
     if ((!m_log_message.empty() || !m_log_data.empty())
         && !ruleMessage->m_match.empty()) {
         ruleMessage->m_data = m_log_data;
@@ -541,7 +549,7 @@ bool Rule::evaluate(Transaction *trasn) {
         delete ruleMessage;
     }
 
-    return ret;
+    return globalRet;
 }
 
 

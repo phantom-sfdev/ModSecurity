@@ -13,35 +13,44 @@
  *
  */
 
+#ifdef __cplusplus
 #include <ctime>
+#include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <list>
+#include <map>
+#include <sstream>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
+#endif
 
-#include "modsecurity/modsecurity.h"
-#include "modsecurity/transaction.h"
+#ifndef HEADERS_MODSECURITY_RULES_EXCEPTIONS_H_
+#define HEADERS_MODSECURITY_RULES_EXCEPTIONS_H_
 
-#ifndef SRC_MACRO_EXPANSION_H_
-#define SRC_MACRO_EXPANSION_H_
+#ifdef __cplusplus
+
 
 namespace modsecurity {
 
-
-class MacroExpansion {
+class RulesExceptions {
  public:
-    MacroExpansion();
+    RulesExceptions() { }
+    bool load(const std::string &data, std::string *error);
+    bool addRange(int a, int b);
+    bool addNumber(int a);
+    bool contains(int a);
 
-    static std::string expand(const std::string& input,
-        Transaction *transaction);
-    static std::string expand(const std::string& input,
-        modsecurity::Rule *r, Transaction *transaction);
-    static std::string expandKeepOriginal(const std::string& input,
-        Transaction *transaction);
+ private:
+    std::list<std::pair<int, int> > m_ranges;
+    std::list<int> m_numbers;
 };
 
-
 }  // namespace modsecurity
+#endif
 
 
+#endif  // HEADERS_MODSECURITY_RULES_EXCEPTIONS_H_
 
-#endif  // SRC_MACRO_EXPANSION_H_

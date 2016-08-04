@@ -270,9 +270,11 @@ void perform_unit_test(ModSecurityTest<RegressionTest> *test,
 
         modsec_transaction->processRequestHeaders();
         actions(&r, modsec_transaction);
+#if 0
         if (r.status != 200) {
-            //goto end;
+            goto end;
         }
+#endif
 
         modsec_transaction->appendRequestBody(
             (unsigned char *)t->request_body.c_str(),
@@ -291,7 +293,8 @@ void perform_unit_test(ModSecurityTest<RegressionTest> *test,
                 headers.second.c_str());
         }
 
-        modsec_transaction->processResponseHeaders(r.status, t->response_protocol);
+        modsec_transaction->processResponseHeaders(r.status,
+            t->response_protocol);
         actions(&r, modsec_transaction);
 #if 0
         if (r.status != 200) {
@@ -310,7 +313,9 @@ void perform_unit_test(ModSecurityTest<RegressionTest> *test,
         }
 #endif
 
+#if 0
 end:
+#endif
         modsec_transaction->processLogging();
 
         CustomDebugLog *d = reinterpret_cast<CustomDebugLog *>
@@ -416,7 +421,7 @@ int main(int argc, char **argv) {
     for (std::string &a : keyList) {
         test_number++;
         if ((test.m_test_number == 0)
-            || (test.m_test_number != 0 && test_number == test.m_test_number)) {
+            || (test_number == test.m_test_number)) {
             std::vector<RegressionTest *> *tests = test[a];
             perform_unit_test(&test, tests, &res, &counter);
         }

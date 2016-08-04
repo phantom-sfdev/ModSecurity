@@ -102,7 +102,6 @@ Multipart::~Multipart() {
         delete m_mpp;
         m_mpp = NULL;
     }
-
 }
 
 
@@ -594,7 +593,7 @@ int Multipart::process_part_data(std::string *error) {
 
 
 int Multipart::process_part_header(std::string *error) {
-    int i, len, rc;
+    int i, len;
 
     /* Check for nul bytes. */
     len = MULTIPART_BUF_SIZE - m_bufleft;
@@ -623,10 +622,12 @@ int Multipart::process_part_header(std::string *error) {
     if (((m_buf[0] == '\r') && (m_buf[1] == '\n') && (m_buf[2] == '\0'))
         || ((m_buf[0] == '\n') && (m_buf[1] == '\0'))) { /* Empty line. */
         std::string header_value("");
+        int rc;
 
         if (m_mpp->m_headers.count("Content-Disposition") == 0) {
             debug(1, "Multipart: Part missing Content-Disposition header.");
-            error->assign("Multipart: Part missing Content-Disposition header.");
+            error->assign("Multipart: Part missing " \
+                "Content-Disposition header.");
             return false;
         }
         header_value = m_mpp->m_headers.at("Content-Disposition");
@@ -736,8 +737,8 @@ int Multipart::process_part_header(std::string *error) {
             if (*data == '\0') {
                 debug(1, "Multipart: Invalid part header (colon missing): " \
                     + std::string(m_buf));
-                error->assign("Multipart: Invalid part header (colon missing): " \
-                    + std::string(m_buf));
+                error->assign("Multipart: Invalid part header " \
+                    "(colon missing): " + std::string(m_buf));
                 return false;
             }
 

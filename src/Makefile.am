@@ -41,7 +41,9 @@ pkginclude_HEADERS = \
 	../headers/modsecurity/modsecurity.h \
 	../headers/modsecurity/rule.h \
 	../headers/modsecurity/rules.h \
-	../headers/modsecurity/rules_properties.h
+	../headers/modsecurity/rules_properties.h \
+	../headers/modsecurity/rules_exceptions.h
+
 
 
 libmodsecurity_includesub_HEADERS = \
@@ -50,6 +52,20 @@ libmodsecurity_includesub_HEADERS = \
 	../headers/modsecurity/collection/variable.h
 
 
+noinst_HEADERS = \
+	actions/*.h \
+	actions/transformations/*.h \
+	audit_log/*.h \
+	audit_log/writer/*.h \
+	collection/backend/*.h \
+	operators/*.h \
+	parser/*.h \
+	request_body_processor/*.h \
+	utils/*.h \
+	utils/mbedtls/*.h \
+	variables/*.h \
+	variables/variations/*.h \
+	*.h
 
 
 VARIABLES = \
@@ -88,6 +104,7 @@ ACTIONS = \
 	actions/ctl_request_body_processor_xml.cc \
 	actions/init_col.cc \
 	actions/deny.cc \
+	actions/log.cc \
 	actions/log_data.cc \
 	actions/maturity.cc \
 	actions/msg.cc \
@@ -200,7 +217,8 @@ UTILS = \
 
 COLLECTION = \
 	collection/collections.cc \
-	collection/backend/in_memory-per_process.cc
+	collection/backend/in_memory-per_process.cc \
+	collection/backend/lmdb.cc
 
 
 BODY_PROCESSORS = \
@@ -228,6 +246,7 @@ libmodsecurity_la_SOURCES = \
 	macro_expansion.cc \
 	rule.cc \
 	unique_id.cc \
+	rules_exceptions.cc \
 	${BODY_PROCESSORS} \
 	${ACTIONS} \
 	${COLLECTION} \
@@ -250,6 +269,7 @@ libmodsecurity_la_CPPFLAGS = \
 	$(GLOBAL_CPPFLAGS) \
 	$(MODSEC_NO_LOGS) \
 	$(YAJL_CFLAGS) \
+	$(LMDB_CFLAGS) \
 	$(PCRE_CFLAGS) \
 	$(LIBXML2_CFLAGS)
 
@@ -260,6 +280,7 @@ libmodsecurity_la_LIBADD = \
 	@LEXLIB@ \
 	$(PCRE_LDADD) \
 	$(YAJL_LDFLAGS) $(YAJL_LDADD) \
+	$(LMDB_LDFLAGS) $(LMDB_LDADD) \
 	$(LIBXML2_LDADD) \
 	../others/libinjection.la \
 	libmbedtls.la

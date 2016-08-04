@@ -29,7 +29,10 @@ namespace operators {
 class Operator {
  public:
     /** @ingroup ModSecurity_Operator */
-    Operator() { }
+    Operator()
+        : op(""),
+        param(""),
+        negation(false) { }
     Operator(std::string op, std::string param, bool negation)
         : op(op),
         param(param),
@@ -46,6 +49,7 @@ class Operator {
 
     virtual bool evaluate(Transaction *transaction, const std::string &str);
     static Operator *instantiate(std::string op);
+
  protected:
     bool debug(Transaction *transaction, int x, std::string a);
 };

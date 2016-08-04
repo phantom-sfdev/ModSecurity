@@ -25,6 +25,7 @@
 
 #include "modsecurity/collection/variable.h"
 #include "src/utils.h"
+#include "src/utils/regex.h"
 
 namespace modsecurity {
 namespace collection {
@@ -98,7 +99,9 @@ void InMemoryPerProcess::resolveMultiMatches(const std::string& var,
         if (x.first.at(keySize) != ':') {
             continue;
         }
-        if (x.first.compare(0, keySize, var) != 0) {
+        std::string fu = toupper(x.first);
+        std::string fvar = toupper(var);
+        if (fu.compare(0, keySize, fvar) != 0) {
             continue;
         }
         l->insert(l->begin(), new Variable(x.first, x.second));
@@ -108,7 +111,38 @@ void InMemoryPerProcess::resolveMultiMatches(const std::string& var,
 
 void InMemoryPerProcess::resolveRegularExpression(const std::string& var,
     std::vector<const Variable *> *l) {
-    /* Not ready */
+
+    if (var.find(":") == std::string::npos) {
+        return;
+    }
+    if (var.size() < var.find(":") + 3) {
+        return;
+    }
+    std::string col = std::string(var, 0, var.find(":"));
+    std::string name = std::string(var, var.find(":") + 2,
+        var.size() - var.find(":") - 3);
+    size_t keySize = col.size();
+    Utils::Regex r = Utils::Regex(name);
+
+    for (const auto& x : *this) {
+        if (x.first.size() <= keySize + 1) {
+            continue;
+        }
+        if (x.first.at(keySize) != ':') {
+            continue;
+        }
+        if (std::string(x.first, 0, keySize) != col) {
+            continue;
+        }
+        std::string content = std::string(x.first, keySize + 1,
+                                          x.first.size() - keySize - 1);
+        int ret = Utils::regex_search(content, r);
+        if (ret <= 0) {
+            continue;
+        }
+
+        l->insert(l->begin(), new Variable(x.first, x.second));
+    }
 }
 
 
@@ -123,59 +157,14 @@ std::string* InMemoryPerProcess::resolveFirst(const std::string& var) {
 }
 
 
-void InMemoryPerProcess::store(std::string key, std::string compartment,
-    std::string value) {
-    std::string nkey = key + "::" + compartment;
-    store(nkey, value);
-}
+std::string InMemoryPerProcess::resolveFirstCopy(const std::string& var) {
+    auto range = equal_range(var);
 
+    for (auto it = range.first; it != range.second; ++it) {
+        return it->second;
+    }
 
-bool InMemoryPerProcess::storeOrUpdateFirst(const std::string &key,
-    std::string compartment, const std::string &value) {
-    std::string nkey = key + "::" + compartment;
-    return storeOrUpdateFirst(nkey, value);
-}
-
-
-bool InMemoryPerProcess::updateFirst(const std::string &key,
-    std::string compartment, const std::string &value) {
-    std::string nkey = key + "::" + compartment;
-    return updateFirst(nkey, value);
-}
-
-
-void InMemoryPerProcess::del(const std::string& key,
-    std::string compartment) {
-    std::string nkey = key + "::" + compartment;
-    del(nkey);
-}
-
-
-std::string* InMemoryPerProcess::resolveFirst(const std::string& var,
-    std::string compartment) {
-    std::string nkey = var + "::" + compartment;
-    return resolveFirst(nkey);
-}
-
-
-void InMemoryPerProcess::resolveSingleMatch(const std::string& var,
-    std::string compartment, std::vector<const Variable *> *l) {
-    std::string nkey = var + "::" + compartment;
-    resolveSingleMatch(nkey, l);
-}
-
-
-void InMemoryPerProcess::resolveMultiMatches(const std::string& var,
-    std::string compartment, std::vector<const Variable *> *l) {
-    std::string nkey = var + "::" + compartment;
-    resolveMultiMatches(nkey, l);
-}
-
-
-void InMemoryPerProcess::resolveRegularExpression(const std::string& var,
-    std::string compartment, std::vector<const Variable *> *l) {
-    std::string nkey = var + "::" + compartment;
-    resolveRegularExpression(nkey, l);
+    return "";
 }
 
 

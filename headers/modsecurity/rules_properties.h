@@ -28,11 +28,13 @@
 
 #include "modsecurity/modsecurity.h"
 #include "modsecurity/transaction.h"
+#include "modsecurity/rules_exceptions.h"
 
 #ifdef __cplusplus
 
 namespace modsecurity {
 class Rule;
+class RulesExceptions;
 namespace audit_log {
 class AuditLog;
 }
@@ -103,7 +105,7 @@ class RulesProperties {
 */
     ~RulesProperties() {
         delete m_debugLog;
-    };
+    }
 
     std::vector<Rule *> rules[7];
     std::vector<Rule *> * getRulesForPhase(int phase) {
@@ -232,6 +234,8 @@ class RulesProperties {
     audit_log::AuditLog *audit_log;
 
     OnFailedRemoteRulesAction remoteRulesActionOnFailed;
+
+    RulesExceptions m_exceptions;
 };
 #endif
 

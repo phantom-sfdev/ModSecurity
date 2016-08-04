@@ -94,6 +94,10 @@ PROG_GEOIP
 AM_CONDITIONAL([GEOIP_CFLAGS], [test "GEOIP_CFLAGS" != ""])
 
 
+# Check for LMDB
+PROG_LMDB
+AM_CONDITIONAL([LMDB_CFLAGS], [test "LMDB_CFLAGS" != ""])
+
 #
 # Check for curl
 #
@@ -274,13 +278,16 @@ AC_CONFIG_FILES([\
     doc/Makefile \
     src/Makefile \
     others/Makefile \
-    test/Makefile \
-    test/benchmark/Makefile \
-    test/fuzzer/Makefile \
     examples/Makefile \
     examples/simple_example_using_c/Makefile \
-    examples/multithread_c/Makefile \
+    examples/multiprocess_c/Makefile \
     ])
+
+AM_COND_IF([TEST_UTILITIES],
+       [AC_CONFIG_FILES([test/Makefile test/benchmark/Makefile])])
+
+AM_COND_IF([AFL_FUZZER],
+       [AC_CONFIG_FILES([test/fuzzer/Makefile])])
 
 AC_CONFIG_HEADERS([src/config.h])
 
@@ -370,6 +377,24 @@ if test "x$YAJL_FOUND" = "x1"; then
 fi
 if test "x$YAJL_FOUND" = "x2"; then
     echo "   + YAJL                                          ....disabled"
+fi
+
+
+## LMDB
+if test "x$LMDB_FOUND" = "x0"; then
+    echo "   + LMDB                                          ....not found"
+fi
+if test "x$LMDB_FOUND" = "x1"; then
+    echo -n "   + LMDB                                          ....found "
+    if ! test "x$LMDB_VERSION" = "x"; then
+        echo "v${LMDB_VERSION}"
+    else
+        echo ""
+    fi
+    echo "      ${LMDB_DISPLAY}"
+fi
+if test "x$LMDB_FOUND" = "x2"; then
+    echo "   + LMDB                                          ....disabled"
 fi
 
 

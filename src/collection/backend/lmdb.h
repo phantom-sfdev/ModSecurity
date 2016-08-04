@@ -23,55 +23,29 @@
 #include <algorithm>
 #endif
 
+#include <lmdb.h>
+#include <semaphore.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <pthread.h>
 
 #include "modsecurity/collection/variable.h"
 #include "modsecurity/collection/collection.h"
 
-#ifndef SRC_COLLECTION_BACKEND_IN_MEMORY_PER_PROCESS_H_
-#define SRC_COLLECTION_BACKEND_IN_MEMORY_PER_PROCESS_H_
+#ifndef SRC_COLLECTION_BACKEND_LMDB_H_
+#define SRC_COLLECTION_BACKEND_LMDB_H_
 
 #ifdef __cplusplus
 namespace modsecurity {
 namespace collection {
 namespace backend {
 
-/*
- * FIXME:
- *
- * This was an example grabbed from:
- * http://stackoverflow.com/questions/8627698/case-insensitive-stl-containers-e-g-stdunordered-set
- *
- * We have to have a better hash function, maybe based on the std::hash.
- *
- */
-struct MyEqual {
-    bool operator()(const std::string& Left, const std::string& Right) const {
-        return Left.size() == Right.size()
-             && std::equal(Left.begin(), Left.end(), Right.begin(),
-            [](char a, char b) {
-            return tolower(a) == tolower(b);
-        });
-    }
-};
-
-struct MyHash{
-    size_t operator()(const std::string& Keyval) const {
-        // You might need a better hash function than this
-        size_t h = 0;
-        std::for_each(Keyval.begin(), Keyval.end(), [&](char c) {
-            h += tolower(c);
-        });
-        return h;
-    }
-};
-
-class InMemoryPerProcess :
-    public std::unordered_multimap<std::string, std::string,
-        /*std::hash<std::string>*/MyHash, MyEqual>,
+class LMDB :
     public Collection {
  public:
-    InMemoryPerProcess();
-    ~InMemoryPerProcess();
+    LMDB();
+    ~LMDB();
     void store(std::string key, std::string value) override;
 
     bool storeOrUpdateFirst(const std::string &key,
@@ -91,6 +65,12 @@ class InMemoryPerProcess :
         std::vector<const Variable *> *l) override;
     void resolveRegularExpression(const std::string& var,
         std::vector<const Variable *> *l) override;
+
+ private:
+    void string2val(const std::string& str, MDB_val *val);
+    void inline lmdb_debug(int rc, std::string op, std::string scope);
+
+    MDB_env *m_env;
 };
 
 }  // namespace backend
@@ -99,4 +79,4 @@ class InMemoryPerProcess :
 #endif
 
 
-#endif  // SRC_COLLECTION_BACKEND_IN_MEMORY_PER_PROCESS_H_
+#endif  // SRC_COLLECTION_BACKEND_LMDB_H_
