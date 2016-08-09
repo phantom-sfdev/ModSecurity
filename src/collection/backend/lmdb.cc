@@ -13,6 +13,7 @@
  *
  */
 
+#ifdef WITH_LMDB
 
 #include "src/collection/backend/lmdb.h"
 
@@ -650,3 +651,5 @@ end_txn:
 }  // namespace backend
 }  // namespace collection
 }  // namespace modsecurity
+
+#endif /* WITH_LMDB */
