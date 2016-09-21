@@ -27,6 +27,7 @@ CLEANFILES = \
 	parser/seclang-scanner.cc \
 	stack.hh
 
+EXTRA_DIST = $(CLEANFILES)
 
 MAINTAINERCLEANFILES = \
 	Makefile.in \
@@ -109,6 +110,7 @@ ACTIONS = \
 	actions/maturity.cc \
 	actions/msg.cc \
 	actions/no_audit_log.cc \
+	actions/no_log.cc \
 	actions/pass.cc \
 	actions/phase.cc \
 	actions/redirect.cc \
