@@ -49,19 +49,12 @@ namespace modsecurity {
  */
 ModSecurity::ModSecurity()
     : m_connector(""),
-#ifdef WITH_LMDB
-    m_global_collection(new collection::backend::LMDB()),
-    m_resource_collection(new collection::backend::LMDB()),
-    m_ip_collection(new collection::backend::LMDB()),
-    m_session_collection(new collection::backend::LMDB()),
-    m_user_collection(new collection::backend::LMDB()),
-#else
     m_global_collection(new collection::backend::InMemoryPerProcess()),
     m_resource_collection(new collection::backend::InMemoryPerProcess()),
     m_ip_collection(new collection::backend::InMemoryPerProcess()),
     m_session_collection(new collection::backend::InMemoryPerProcess()),
     m_user_collection(new collection::backend::InMemoryPerProcess()),
-#endif
+
     m_logCb(NULL) {
     UniqueId::uniqueId();
     srand(time(NULL));
@@ -83,6 +76,57 @@ ModSecurity::~ModSecurity() {
     delete m_ip_collection;
     delete m_session_collection;
     delete m_user_collection;
+}
+
+int ModSecurity::setDBPath(std::string db_path) {
+#ifdef WITH_LMDB
+    collection::backend::LMDB *dbi;
+    int rc;
+
+    dbi = new collection::backend::LMDB();
+    rc = dbi->env_open(db_path);
+    if (rc != 0) {
+        return rc;
+    }
+    delete m_global_collection;
+    m_global_collection = dbi;
+
+    dbi = new collection::backend::LMDB();
+    rc = dbi->env_open(db_path);
+    if (rc != 0) { 
+        return rc;
+    }
+    delete m_resource_collection;
+    m_resource_collection = dbi;
+
+    dbi = new collection::backend::LMDB();
+    rc = dbi->env_open(db_path);
+    if (rc != 0) { 
+        return rc;
+    }
+    delete m_ip_collection;
+    m_ip_collection = dbi;
+
+    dbi = new collection::backend::LMDB();
+    rc = dbi->env_open(db_path);
+    if (rc != 0) { 
+        return rc;
+    }
+    delete m_session_collection;
+    m_session_collection = dbi;
+
+    dbi = new collection::backend::LMDB();
+    rc = dbi->env_open(db_path);
+    if (rc != 0) { 
+        return rc;
+    }
+    delete m_user_collection;
+    m_user_collection = dbi;
+
+    return 0;
+#else
+    return (0);  /* XXX:  think about better error code if LMDB is not compiled in, (or just ignore that case?) */
+#endif
 }
 
 
@@ -171,10 +215,15 @@ void ModSecurity::serverLog(void *data, const std::string& msg) {
     }
 }
 
-
 void ModSecurity::setServerLogCb(LogCb cb) {
     m_logCb = (LogCb) cb;
 }
+
+extern "C" int msc_set_db_path(ModSecurity *msc,
+    const char *db_path) {
+    return msc->setDBPath(std::string(db_path));
+}
+
 
 /**
  * @name    msc_set_log_cb

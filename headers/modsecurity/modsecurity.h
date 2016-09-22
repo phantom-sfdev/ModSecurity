@@ -140,6 +140,7 @@ class ModSecurity {
     ModSecurity();
     ~ModSecurity();
 
+    int setDBPath(std::string db_path);
     static const std::string whoAmI();
     void setConnectorInformation(std::string connector);
     void setServerLogCb(LogCb cb);
@@ -240,6 +241,8 @@ class ModSecurity {
 extern "C" {
 #endif
 
+/** @ingroup ModSecurity_C_API */
+int msc_set_db_path(ModSecurity *msc, const char *db_path);
 /** @ingroup ModSecurity_C_API */
 ModSecurity *msc_init();
 /** @ingroup ModSecurity_C_API */
