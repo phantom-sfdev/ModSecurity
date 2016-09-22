@@ -114,6 +114,14 @@ int Driver::addSecRule(Rule *rule) {
 
 
 int Driver::parse(const std::string &f, const std::string &ref) {
+    /* XXX: this is a hack to ensure that empty lines would not
+     *      go into parser.  It can cause freeze due to stdin read
+     */
+    if (f.length() == 0) {
+        parserError << "empty input" << std::endl;
+        return false;
+    }
+
     lastRule = NULL;
     loc.push_back(new yy::location());
     if (ref.empty()) {
