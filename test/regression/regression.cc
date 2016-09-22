@@ -113,6 +113,11 @@ void perform_unit_test(ModSecurityTest<RegressionTest> *test,
             " (ModSecurity regression test utility)");
         modsec->setServerLogCb(logCb);
         modsec_rules = new modsecurity::Rules(debug_log);
+        int rc = modsec->setDBPath("./modsec-shared-collections");
+        if (rc != 0) {
+            std::cout << "Failed to open modsec db (errno = " << rc << ")";
+            return;
+        }
 
         bool found = true;
         if (t->resource.empty() == false) {

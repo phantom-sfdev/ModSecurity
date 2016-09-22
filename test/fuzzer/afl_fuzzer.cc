@@ -131,6 +131,11 @@ int main(int argc, char** argv) {
         std::string z = lastString;
 
         ModSecurity *ms = new ModSecurity();
+        int rc = modsec->setDBPath("./modsec-shared-collections");
+        if (rc != 0) {
+            std::cout << "Failed to open modsec db (errno = " << rc << ")";
+            return;
+        }
         Rules *rules = new Rules();
         Transaction *transaction = new Transaction(ms, rules, NULL);
 

@@ -77,6 +77,12 @@ int main(int argc, char *argv[]) {
     modsec = new modsecurity::ModSecurity();
     modsec->setConnectorInformation("ModSecurity-benchmark v0.0.1-alpha" \
             " (ModSecurity benchmark utility)");
+    int rc = modsec->setDBPath("./modsec-shared-collections");
+    if (rc != 0) {
+        std::cout << "Failed to open modsec db (errno = " << rc << ")";
+        return;
+    }
+
 
     rules = new modsecurity::Rules();
     if (rules->loadFromUri(rules_file) < 0) {
