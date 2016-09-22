@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
     int rc = modsec->setDBPath("./modsec-shared-collections");
     if (rc != 0) {
         std::cout << "Failed to open modsec db (errno = " << rc << ")";
-        return;
+        return -1;
     }
 
 
