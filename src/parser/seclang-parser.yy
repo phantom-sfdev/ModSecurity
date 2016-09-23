@@ -486,6 +486,7 @@ expression:
             /* op */ $3,
             /* variables */ $2,
             /* actions */ $4,
+            /* plain text */ driver.get_orig(),
             /* file name */ driver.ref.back(),
             /* line number */ @0.end.line
             );
@@ -500,6 +501,7 @@ expression:
             /* op */ $3,
             /* variables */ $2,
             /* actions */ NULL,
+            /* plain text */ driver.get_orig(),
             /* file name */ driver.ref.back(),
             /* line number */ @0.end.line
             );
@@ -514,6 +516,7 @@ expression:
             /* op */ NULL,
             /* variables */ NULL,
             /* actions */ $2,
+            /* plain text */ driver.get_orig(),
             /* file name */ driver.ref.back(),
             /* line number */ @0.end.line
             );

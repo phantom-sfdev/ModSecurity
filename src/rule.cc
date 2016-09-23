@@ -32,6 +32,7 @@
 #include "src/utils.h"
 #include "modsecurity/rules.h"
 #include "src/macro_expansion.h"
+#include "audit_log/audit_log.h"
 
 using modsecurity::Variables::Variations::Exclusion;
 
@@ -85,12 +86,14 @@ Rule::Rule(std::string marker)
     m_marker(marker),
     m_maturity(0),
     m_referenceCount(0),
+    m_plainText(""),
     m_fileName(""),
     m_lineNumber(0) { }
 
 Rule::Rule(Operator *_op,
         std::vector<Variable *> *_variables,
         std::vector<Action *> *actions,
+        std::string plainText,
         std::string fileName,
         int lineNumber): chained(false),
     chainedRule(NULL),
@@ -104,6 +107,7 @@ Rule::Rule(Operator *_op,
     m_marker(""),
     m_maturity(0),
     m_referenceCount(0),
+    m_plainText(plainText),
     m_fileName(fileName),
     m_lineNumber(lineNumber) {
     if (actions != NULL) {
@@ -171,7 +175,7 @@ bool Rule::evaluateActions(Transaction *trasn) {
 
     if (none == 0) {
         /*
-        for (Action *a : trasn->m_rules->defaultActions[this->phase]) {
+        for (Action *a : teasn->m_rules->defaultActions[this->phase]) {
             if (a->action_kind == actions::Action::RunTimeBeforeMatchAttemptKind) {
                 value = a->evaluate(value, trasn);
                 trasn->debug(9, "(SecDefaultAction) T (" + \
@@ -401,6 +405,22 @@ bool Rule::evaluate(Transaction *trasn) {
                 bool containsPassAction = false;
 		globalRet = true;
 
+                /* AUDITLOG:  save fired rule for auditlog */
+                if (trasn->m_rules->audit_log) {
+                    int al = 0;
+                    for (Action *a : 
+                    this->actions_runtime_pos) {
+                        if (a->m_name == "auditlog") { 
+                            al = 1;
+                            break;
+                        }
+                    }
+                    if (al == 1) {
+                        /* save records which has 'auditlog' action set */
+                        trasn->m_rules->audit_log->m_fired_rules.push_back(this);
+                    }
+                }
+
                 if (this->op->m_match_message.empty() == true) {
                     ruleMessage->m_match = "Matched \"Operator `" +
                         this->op->op + "' with parameter `" +
@@ -433,6 +453,9 @@ bool Rule::evaluate(Transaction *trasn) {
                         }
                     }
                 }
+
+/* FIXME:  save SecDefaultAction to auditlog as well */
+/* FIXME:  save chained rules for auditlog in special way */
 
                 if (this->chained && this->chainedRule == NULL) {
 #ifndef NO_LOGS
@@ -530,6 +553,8 @@ bool Rule::evaluate(Transaction *trasn) {
                     ruleMessage->m_message = m_log_message;
                     trasn->debug(4, "Saving on the server log: " + ruleMessage->errorLog(trasn));
                     trasn->serverLog(ruleMessage->errorLog(trasn));
+                    /* AUDITLOG:  save fired message for auditlog */
+                    trasn->m_rules->audit_log->m_fired_messages.push_back(ruleMessage->errorLog(trasn));
                 }
             } else if (globalRet != true) {
 #ifndef NO_LOGS

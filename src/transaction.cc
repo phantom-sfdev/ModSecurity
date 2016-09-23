@@ -1340,6 +1340,7 @@ std::string Transaction::toOldAuditLogFormat(int parts,
             delete h;
         }
     }
+
     if (parts & audit_log::AuditLog::CAuditLogPart) {
         audit_log << "--" << trailer << "-" << "C--" << std::endl;
         /** TODO: write audit_log C part. */
@@ -1349,8 +1350,14 @@ std::string Transaction::toOldAuditLogFormat(int parts,
         /** TODO: write audit_log D part. */
     }
     if (parts & audit_log::AuditLog::EAuditLogPart) {
+        /* FIXME:  check if it's working as expected, and nginx passes
+         * special response (403, etc)
+         */
         audit_log << "--" << trailer << "-" << "E--" << std::endl;
-        /** TODO: write audit_log E part. */
+        std::string body = this->m_responseBody.str();
+        if (body.size() > 0) {
+            audit_log << body << std::endl;
+        }
     }
     if (parts & audit_log::AuditLog::FAuditLogPart) {
         std::vector<const collection::Variable *> l;
@@ -1369,7 +1376,10 @@ std::string Transaction::toOldAuditLogFormat(int parts,
     }
     if (parts & audit_log::AuditLog::HAuditLogPart) {
         audit_log << "--" << trailer << "-" << "H--" << std::endl;
-        /** TODO: write audit_log H part. */
+        for (int i = 0; i < this->m_rules->audit_log->m_fired_messages.size(); i++) {
+            std::string m = this->m_rules->audit_log->m_fired_messages[i];
+            audit_log << m << std::endl;
+        }
     }
     if (parts & audit_log::AuditLog::IAuditLogPart) {
         audit_log << "--" << trailer << "-" << "I--" << std::endl;
@@ -1381,7 +1391,12 @@ std::string Transaction::toOldAuditLogFormat(int parts,
     }
     if (parts & audit_log::AuditLog::KAuditLogPart) {
         audit_log << "--" << trailer << "-" << "K--" << std::endl;
-        /** TODO: write audit_log K part. */
+        for (int i = 0; i < this->m_rules->audit_log->m_fired_rules.size(); i++) {
+            Rule *r = this->m_rules->audit_log->m_fired_rules[i];
+            if (r->m_plainText.size() > 0) {
+                audit_log << r->m_plainText << std::endl << std::endl;
+            }
+        }
     }
     audit_log << "--" << trailer << "-" << "Z--" << std::endl << std::endl;
 

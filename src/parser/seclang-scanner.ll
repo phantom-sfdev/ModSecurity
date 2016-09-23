@@ -207,6 +207,7 @@ CONFIG_DIR_UNICODE_MAP_FILE (?i:SecUnicodeMapFile)
 %{
   // Code run each time yylex is called.
   driver.loc.back()->step();
+  driver.save_orig(yytext);
 %}
 
 {DIRECTIVE}                     { return yy::seclang_parser::make_DIRECTIVE(yytext, *driver.loc.back()); }
